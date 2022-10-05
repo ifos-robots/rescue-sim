@@ -23,7 +23,7 @@ class Gyroscope:
         self.past_exec_time = time
 
     @property
-    def angle_dg(self):
+    def angle_deg(self):
         return self.angle * (180 / math.pi)
 
     def __normalizeRadAngle(self, angle):
