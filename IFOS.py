@@ -3,7 +3,8 @@ import struct
 import numpy as np
 import cv2 as cv
 
-import sensors
+from sensors import Gyroscope, DistanceSensors
+from robot import collision_avoidance
 
 timeStep = 32  # Set the time step for the simulation
 max_velocity = 6.28  # Set a maximum velocity time constant
@@ -21,22 +22,16 @@ wheel_right = robot.getDevice(
 speeds = [max_velocity, max_velocity]
 
 # Create objects for all robot sensors
-leftDist = robot.getDevice("dist left")  # Get robot's left distance sensor
-leftDist.enable(timeStep)  # Enable left distance sensor
-
+leftDist = robot.getDevice("dist left")
 frontDist = robot.getDevice("dist front")
-frontDist.enable(timeStep)
-
 rightDist = robot.getDevice("dist right")
-rightDist.enable(timeStep)
-
 eastDist = robot.getDevice("dist right 2")
-eastDist.enable(timeStep)
-
 westDist = robot.getDevice("dist left 2")
-westDist.enable(timeStep)
+distance = DistanceSensors(
+    [westDist, leftDist, frontDist, rightDist, eastDist], timeStep
+)
 
-gyroscope = sensors.Gyroscope(robot.getDevice("gyro"), 1, timeStep)
+gyroscope = Gyroscope(robot.getDevice("gyro"), 1, timeStep)
 
 cam = robot.getDevice("camera front")
 cam.enable(timeStep)
@@ -133,6 +128,9 @@ def report(victimType):
 
 while robot.step(timeStep) != -1:
     gyroscope.update(robot.getTime())
+    distance.update()
+
+    collision_avoidance(distance.distances)
 
     speeds[0] = max_velocity
     speeds[1] = max_velocity
