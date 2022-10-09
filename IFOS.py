@@ -3,23 +3,17 @@ import struct
 import numpy as np
 import cv2 as cv
 
-from sensors import Gyroscope, DistanceSensors
-from robot import collision_avoidance
-
 timeStep = 32  # Set the time step for the simulation
 max_velocity = 6.28  # Set a maximum velocity time constant
 
 robot = Robot()
 
-wheel_left = robot.getDevice(
-    "left wheel motor"
-)  # Create an object to control the left wheel
-wheel_right = robot.getDevice(
-    "right wheel motor"
-)  # Create an object to control the right wheel
-
-# [left wheel speed, right wheel speed]
-speeds = [max_velocity, max_velocity]
+wheel_left = Wheel(
+    robot.getDevice("left wheel motor"), max_velocity
+)  # Create left wheel object
+wheel_right = Wheel(
+    robot.getDevice("right wheel motor"), max_velocity
+)  # Create right wheel object
 
 # Create objects for all robot sensors
 leftDist = robot.getDevice("dist left")
@@ -44,29 +38,27 @@ emitter = robot.getDevice("emitter")  # Emitter doesn't need enable
 gps = robot.getDevice("gps")
 gps.enable(timeStep)
 
-wheel_left.setPosition(float("inf"))
-wheel_right.setPosition(float("inf"))
+movement = Movement(wheel_left, wheel_right, gyroscope)
+
+# def turn_right():
+#     # set left wheel speed
+#     speeds[0] = 0.6 * max_velocity
+#     # set right wheel speed
+#     speeds[1] = -0.2 * max_velocity
 
 
-def turn_right():
-    # set left wheel speed
-    speeds[0] = 0.6 * max_velocity
-    # set right wheel speed
-    speeds[1] = -0.2 * max_velocity
+# def turn_left():
+#     # set left wheel speed
+#     speeds[0] = -0.2 * max_velocity
+#     # set right wheel speed
+#     speeds[1] = 0.6 * max_velocity
 
 
-def turn_left():
-    # set left wheel speed
-    speeds[0] = -0.2 * max_velocity
-    # set right wheel speed
-    speeds[1] = 0.6 * max_velocity
-
-
-def spin():
-    # set left wheel speed
-    speeds[0] = 0.6 * max_velocity
-    # set right wheel speed
-    speeds[1] = -0.6 * max_velocity
+# def spin():
+#     # set left wheel speed
+#     speeds[0] = 0.6 * max_velocity
+#     # set right wheel speed
+#     speeds[1] = -0.6 * max_velocity
 
 
 def delay(ms):
@@ -113,8 +105,8 @@ def report(victimType):
     # Last byte stores type of victim
     #     Victims: H, S, U, T
     #     Hazards: F, P, C, O
-    wheel_left.setVelocity(0)  # Stop for 1 second
-    wheel_right.setVelocity(0)
+    # wheel_left.setVelocity(0)  # Stop for 1 second
+    # wheel_right.setVelocity(0)
     delay(1300)
     victimType = bytes(
         victimType, "utf-8"
@@ -130,44 +122,48 @@ while robot.step(timeStep) != -1:
     gyroscope.update(robot.getTime())
     distance.update()
 
-    collision_avoidance(distance.distances)
+    movement_decision(distance.distances, movement)
 
-    speeds[0] = max_velocity
-    speeds[1] = max_velocity
+    # speeds[0] = max_velocity
+    # speeds[1] = max_velocity
 
     print(
-        "Front: "
-        + str(frontDist.getValue())
+        " West: "
+        + str(distance.distances[0])
         + " | Left: "
-        + str(leftDist.getValue())
+        + str(distance.distances[1])
+        + " | Front: "
+        + str(distance.distances[2])
         + " | Right: "
-        + str(rightDist.getValue())
+        + str(distance.distances[3])
+        + " | East: "
+        + str(distance.distances[4])
     )
 
     # Check left and right sensor to avoid walls
     # for sensor on the left, either
-    if leftDist.getValue() < 0.05:
-        turn_right()  # We see a wall on the left, so turn right away from the wall
+    # if leftDist.getValue() < 0.05:
+    #     turn_right()  # We see a wall on the left, so turn right away from the wall
 
-    if rightDist.getValue() < 0.05:  # for sensor on the right too
-        turn_left()
+    # if rightDist.getValue() < 0.05:  # for sensor on the right too
+    #     turn_left()
 
-    # for front sensor
-    if frontDist.getValue() < 0.05:
-        spin()
+    # # for front sensor
+    # if frontDist.getValue() < 0.05:
+    #     spin()
 
     # if on black, turn away
     if getColor() < 80:
-        spin()
-        wheel_left.setVelocity(speeds[0])
-        wheel_right.setVelocity(speeds[1])
+        # spin()
+        # wheel_left.setVelocity(speeds[0])
+        # wheel_right.setVelocity(speeds[1])
         delay(600)
 
     # if sees victim, report it
     if checkVic(cam.getImage()):
         report("T")  # Cannot determine type of victim, so always try 'T' for now
 
-    wheel_left.setVelocity(
-        speeds[0]
-    )  # Send the speed values we have choosen to the robot
-    wheel_right.setVelocity(speeds[1])
+    # wheel_left.setVelocity(
+    #     speeds[0]
+    # )  # Send the speed values we have choosen to the robot
+    # wheel_right.setVelocity(speeds[1])
