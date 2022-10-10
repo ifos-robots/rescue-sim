@@ -31,7 +31,7 @@ cam = robot.getDevice("camera front")
 cam.enable(timeStep)
 
 colorSensor = robot.getDevice("color")
-colorSensor.enable(timeStep)
+color = Color(colorSensor, timeStep)
 
 emitter = robot.getDevice("emitter")  # Emitter doesn't need enable
 
