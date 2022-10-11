@@ -66,3 +66,37 @@ class DistanceSensors:
             self.front_right_distance,
             self.right_distance,
         ]
+
+
+class Color:
+    def __init__(self, sensor, time_step):
+        self.sensor = sensor
+        self.sensor.enable(time_step)
+
+        self.color = {
+            "red": None,
+            "green": None,
+            "blue": None,
+        }
+
+    def update(self):
+        image = self.sensor.getImage()
+        self.color["red"] = self.sensor.imageGetRed(image, 1, 0, 0)
+        self.color["green"] = self.sensor.imageGetGreen(image, 1, 0, 0)
+        self.color["blue"] = self.sensor.imageGetBlue(image, 1, 0, 0)
+
+    @property
+    def red(self):
+        return self.color["red"]
+
+    @property
+    def green(self):
+        return self.color["green"]
+
+    @property
+    def blue(self):
+        return self.color["blue"]
+
+    @property
+    def rgb(self):
+        return self.color
