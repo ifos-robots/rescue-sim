@@ -24,8 +24,10 @@ distance = DistanceSensors(
 ## Gyroscope
 gyroscope = Gyroscope(robot.getDevice("gyro"), 1, timeStep)
 
-## Camera
-camera = Camera(robot.getDevice("camera front"), timeStep)
+## Cameras
+front_camera = Camera(robot.getDevice("camera front"), timeStep)
+left_camera = Camera(robot.getDevice("camera left"), timeStep)
+right_camera = Camera(robot.getDevice("camera right"), timeStep)
 
 ## Color Sensor
 colorSensor = robot.getDevice("color")
@@ -49,7 +51,9 @@ def update_sensors(robot_time):
     color.update()
     gps.update()
     radio.updateReceiver()
-    camera.update()
+    front_camera.update()
+    left_camera.update()
+    right_camera.update()
 
 
 while robot.step(timeStep) != -1:
