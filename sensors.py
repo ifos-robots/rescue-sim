@@ -1,4 +1,5 @@
 import math
+import struct
 
 
 class Gyroscope:
@@ -153,3 +154,68 @@ class GPS:
         self.previousCoordinates["z"] = self.coordinates["z"]
 
         return lack_detected
+
+
+class Radio:
+    def __init__(self, emitter, receiver, time_step):
+        self.emitter = emitter
+        self.receiver = receiver
+
+        self.receiver.enable(time_step)
+
+    def updateReceiver(self):
+        if self.receiver.getQueueLength() > 0:
+            receivedData = self.receiver.getData()
+            message = struct.unpack("c", receivedData)  # Parse data into character
+            if message[0].decode("utf-8") == "L":
+                self.lackOfProgressReceivedHandler()
+            if message[0].decode("utf-8") == "G":
+                self.gameDataReceivedHandler(message[1], message[2])
+
+            self.receiver.nextPacket()
+
+    def sendVictim(self, type, position):
+        victim_type = bytes(type, "utf-8")
+        message = struct.pack("i i c", position["x"], position["y"], victim_type)
+        self.emitter.send(message)
+
+    def lackOfProgressHelp(self):
+        message = struct.pack("c", "L".encode())
+        self.emitter.send(message)
+
+    def lackOfProgressReceivedHandler(self):
+        pass
+
+    def gameDataReceivedHandler(self, score, time_remaining):
+        pass
+
+    def endOfGame(self):
+        self.emitter.send(bytes("E", "utf-8"))
+
+    def sendMap(self, map_matrix):
+        ## Get shape
+        map_shape = map_matrix.shape
+        ## Get shape as bytes
+        map_shape_bytes = struct.pack("2i", *map_shape)
+
+        ## Flattening the matrix and join with ','
+        flat_map = ",".join(map_shape_bytes.flatten())
+        ## Encode
+        encoded_map = flat_map.encode("utf-8")
+
+        ## Add togeather, shape + map
+        shape_and_map_bytes = map_shape_bytes + encoded_map
+
+        ## Send map data
+        self.emitter.send(shape_and_map_bytes)
+
+        self.sendMapEvaluationRequest()
+        self.sendExitMessage()
+
+    def sendMapEvaluationRequest(self):
+        map_evaluate_request = struct.pack("c", b"M")
+        self.emitter.send(map_evaluate_request)
+
+    def sendExitMessage(self):
+        exit_message = struct.pack("c", b"E")
+        self.emitter.send(exit_message)

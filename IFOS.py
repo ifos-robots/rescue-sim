@@ -35,7 +35,9 @@ color = Color(colorSensor, timeStep)
 
 gps = GPS(robot.getDevice("gps"), timeStep)
 
-emitter = robot.getDevice("emitter")  # Emitter doesn't need enable
+emitter = robot.getDevice("emitter")
+receiver = robot.getDevice("receiver")
+radio = Radio(emitter, receiver, timeStep)
 
 movement = Movement(wheel_left, wheel_right, gyroscope)
 
@@ -103,6 +105,7 @@ while robot.step(timeStep) != -1:
     distance.update()
     color.update()
     gps.update()
+    radio.updateReceiver()
 
     movement_decision(distance.distances, movement, color, gps)
 
