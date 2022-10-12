@@ -155,9 +155,13 @@ def movement_decision(distances, movement: Movement, color, gps, radio):
         else:
             print("Phew! Its not a hole. Its a wall")
     if floor_area == "swamp":
-        turn_to_freest_way(distances, movement)
-        print("Moving due to swamp")
-        return
+        if collision_zones[2] > 0:
+            turn_to_freest_way(distances, movement)
+            print("I'm not going there")
+            print("Moving due to swamp")
+            return
+        else:
+            print("Okay. Take a deep breath and lets go!")
 
     # Collision in front
     if collision_zones[2] > 1:
