@@ -143,10 +143,15 @@ class GPS:
             return "no"
 
         deltaX = abs(self.coordinates["x"] - self.previousCoordinates["x"])
-        deltaY = abs(self.coordinates["y"] - self.previousCoordinates["y"])
+        deltaZ = abs(self.coordinates["z"] - self.previousCoordinates["z"])
 
         lack_detected = "no"
-        if deltaX < min_delta and deltaY < min_delta:
+        if deltaX < min_delta and deltaZ < min_delta:
+            print("Lack of progress detected")
+            print("deltaX: ", deltaX)
+            print("deltaY: ", deltaZ)
+            print(self.previousCoordinates)
+            print(self.coordinates)
             lack_detected = "yes"
 
         self.previousCoordinates["x"] = self.coordinates["x"]

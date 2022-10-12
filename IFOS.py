@@ -57,15 +57,15 @@ while robot.step(timeStep) != -1:
 
     movement_decision(distance.distances, movement, color, gps, radio)
 
-    print(
-        " West: "
-        + str(distance.distances[0])
-        + " | Left: "
-        + str(distance.distances[1])
-        + " | Front: "
-        + str(distance.distances[2])
-        + " | Right: "
-        + str(distance.distances[3])
-        + " | East: "
-        + str(distance.distances[4])
-    )
+    # print(
+    #     " West: "
+    #     + str(distance.distances[0])
+    #     + " | Left: "
+    #     + str(distance.distances[1])
+    #     + " | Front: "
+    #     + str(distance.distances[2])
+    #     + " | Right: "
+    #     + str(distance.distances[3])
+    #     + " | East: "
+    #     + str(distance.distances[4])
+    # )
