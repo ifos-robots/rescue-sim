@@ -219,3 +219,14 @@ class Radio:
     def sendExitMessage(self):
         exit_message = struct.pack("c", b"E")
         self.emitter.send(exit_message)
+
+
+class Camera:
+    def __init__(self, sensor, time_step):
+        self.sensor = sensor
+        self.sensor.enable(time_step)
+
+        self.image = None
+
+    def update(self):
+        self.image = self.sensor.getImage()
