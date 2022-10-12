@@ -27,6 +27,7 @@ class Movement:
         self.gyro = gyro
         self.rotating = False
         self.lack_of_progress_counter = 0
+        self.is_in_swamp = False
 
     def move(self, left_speed_ratio, right_speed_ratio, bypass_rotating=False):
         if self.rotating and not bypass_rotating:
@@ -94,9 +95,17 @@ def collision_avoidance(distances) -> Tuple[int, int, int, int, int]:
 
     for i in range(len(distances)):
         if distances[i] < 0.1:
-            collision_zones[i] = 2
+            collision_zones[i] = 5
         elif distances[i] < 0.2:
+            collision_zones[i] = 4
+        elif distances[i] < 0.3:
+            collision_zones[i] = 3
+        elif distances[i] < 0.4:
+            collision_zones[i] = 2
+        elif distances[i] < 0.5:
             collision_zones[i] = 1
+        else:
+            collision_zones[i] = 0
 
     return collision_zones
 
@@ -105,7 +114,12 @@ def which_way_to_turn(distances):
     return "left" if distances[0] >= distances[4] else "right"
 
 
-def turn_to_freest_way(distances, movement):
+def turn_to_freest_way(distances, movement, lock_rotation=True):
+    if not lock_rotation:
+        if which_way_to_turn(distances) == "left":
+            movement.move(-0.5, 0.5)
+        else:
+            movement.move(0.5, -0.5)
     if which_way_to_turn(distances) == "left":
         movement.rotate_in_angle(90, 0.5)
     else:
@@ -136,10 +150,10 @@ def movement_decision(distances, movement: Movement, color, gps, radio):
     if movement.rotating:
         movement.keep_rotating()
         if (
-            collision_zones[0] > 1
-            and collision_zones[1] > 1
-            or collision_zones[3] > 1
-            and collision_zones[4] > 1
+            collision_zones[0] > 4
+            and collision_zones[1] > 4
+            or collision_zones[3] > 4
+            and collision_zones[4] > 4
         ):
             # print("Collision on side")
             # print("Backward")
@@ -148,26 +162,26 @@ def movement_decision(distances, movement: Movement, color, gps, radio):
         return
 
     if floor_area == "hole":
-        if collision_zones[2] < 1:
+        if collision_zones[2] < 4:
             turn_to_freest_way(distances, movement)
             print("Moving due to hole")
             return
         else:
             print("Phew! Its not a hole. Its a wall")
-    if floor_area == "swamp":
-        if collision_zones[2] > 0:
-            turn_to_freest_way(distances, movement)
-            print("I'm not going there")
-            print("Moving due to swamp")
-            return
-        else:
+    elif floor_area == "swamp":
+        if not movement.is_in_swamp:
+            movement.is_in_swamp = True
             print("Okay. Take a deep breath and lets go!")
+    elif floor_area == "normal":
+        if movement.is_in_swamp:
+            movement.is_in_swamp = False
+            print("I'm out of the swamp")
 
     # Collision in front
-    if collision_zones[2] > 1:
+    if collision_zones[2] > 4:
         # print("Collision in front")
-        left_free = collision_zones[0] < 1 or collision_zones[1] < 1
-        right_free = collision_zones[3] < 1 or collision_zones[4] < 1
+        left_free = collision_zones[0] < 4 or collision_zones[1] < 4
+        right_free = collision_zones[3] < 4 or collision_zones[4] < 4
         # Both sides are free
         if left_free and right_free:
             turn_to_freest_way(distances, movement)
@@ -183,12 +197,12 @@ def movement_decision(distances, movement: Movement, color, gps, radio):
             movement.rotate_in_angle(180, 0.5)
             # print("Turning back")
     # No collision in front but left is blocked
-    elif collision_zones[0] > 1 and collision_zones[1] > 1:
+    elif collision_zones[0] > 4 and collision_zones[1] > 4:
         # print("Collision on left")
         # print("Turning right")
         movement.move(0.5, -0.5)
     # No collision in front but right is blocked
-    elif collision_zones[3] > 1 and collision_zones[4] > 1:
+    elif collision_zones[3] > 4 and collision_zones[4] > 4:
         # print("Collision on right")
         # print("Turning left")
         movement.move(-0.5, 0.5)
