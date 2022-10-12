@@ -1,4 +1,4 @@
-from controller import Robot, Motor, DistanceSensor, Camera, Emitter, GPS
+from controller import Robot, Motor, DistanceSensor, Camera, Emitter
 import struct
 import numpy as np
 import cv2 as cv
@@ -33,32 +33,11 @@ cam.enable(timeStep)
 colorSensor = robot.getDevice("color")
 color = Color(colorSensor, timeStep)
 
+gps = GPS(robot.getDevice("gps"), timeStep)
+
 emitter = robot.getDevice("emitter")  # Emitter doesn't need enable
 
-gps = robot.getDevice("gps")
-gps.enable(timeStep)
-
 movement = Movement(wheel_left, wheel_right, gyroscope)
-
-# def turn_right():
-#     # set left wheel speed
-#     speeds[0] = 0.6 * max_velocity
-#     # set right wheel speed
-#     speeds[1] = -0.2 * max_velocity
-
-
-# def turn_left():
-#     # set left wheel speed
-#     speeds[0] = -0.2 * max_velocity
-#     # set right wheel speed
-#     speeds[1] = 0.6 * max_velocity
-
-
-# def spin():
-#     # set left wheel speed
-#     speeds[0] = 0.6 * max_velocity
-#     # set right wheel speed
-#     speeds[1] = -0.6 * max_velocity
 
 
 def delay(ms):
@@ -99,6 +78,7 @@ def checkVic(img):
 
 
 def report(victimType):
+    pass
     # Struct package to be sent to supervisor to report victim/hazard
     # First four bytes store robot's x coordinate
     # Second four bytes store robot's z coordinate
@@ -107,23 +87,24 @@ def report(victimType):
     #     Hazards: F, P, C, O
     # wheel_left.setVelocity(0)  # Stop for 1 second
     # wheel_right.setVelocity(0)
-    delay(1300)
-    victimType = bytes(
-        victimType, "utf-8"
-    )  # Convert victimType to character for struct.pack
-    posX = int(gps.getValues()[0] * 100)  # Convert from cm to m
-    posZ = int(gps.getValues()[2] * 100)
-    message = struct.pack("i i c", posX, posZ, victimType)
-    emitter.send(message)
-    robot.step(timeStep)
+    # delay(1300)
+    # victimType = bytes(
+    #     victimType, "utf-8"
+    # )  # Convert victimType to character for struct.pack
+    # posX = int(gps.getValues()[0] * 100)  # Convert from cm to m
+    # posZ = int(gps.getValues()[2] * 100)
+    # message = struct.pack("i i c", posX, posZ, victimType)
+    # emitter.send(message)
+    # robot.step(timeStep)
 
 
 while robot.step(timeStep) != -1:
     gyroscope.update(robot.getTime())
     distance.update()
     color.update()
+    gps.update()
 
-    movement_decision(distance.distances, movement, color)
+    movement_decision(distance.distances, movement, color, gps)
 
     # speeds[0] = max_velocity
     # speeds[1] = max_velocity

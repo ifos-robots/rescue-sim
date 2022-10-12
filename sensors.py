@@ -100,3 +100,56 @@ class Color:
     @property
     def rgb(self):
         return self.color
+
+
+class GPS:
+    def __init__(self, sensor, time_step):
+        self.sensor = sensor
+        self.sensor.enable(time_step)
+
+        self.coordinates = {
+            "x": None,
+            "y": None,
+            "z": None,
+        }
+
+        self.previousCoordinates = {
+            "x": None,
+            "y": None,
+            "z": None,
+        }
+
+        self.lackOfProgressClock = 10
+
+    def update(self):
+        coordinates = self.sensor.getValues()
+
+        self.coordinates["x"] = coordinates[0]
+        self.coordinates["y"] = coordinates[1]
+        self.coordinates["z"] = coordinates[2]
+
+    def lackOfProgressDetector(self, min_delta):
+        self.lackOfProgressClock -= 1
+        if self.lackOfProgressClock > 0:
+            return "clock"
+
+        self.lackOfProgressClock = 10
+
+        if self.coordinates["x"] == None or self.previousCoordinates["x"] == None:
+            self.previousCoordinates["x"] = self.coordinates["x"]
+            self.previousCoordinates["y"] = self.coordinates["y"]
+            self.previousCoordinates["z"] = self.coordinates["z"]
+            return "no"
+
+        deltaX = abs(self.coordinates["x"] - self.previousCoordinates["x"])
+        deltaY = abs(self.coordinates["y"] - self.previousCoordinates["y"])
+
+        lack_detected = "no"
+        if deltaX < min_delta and deltaY < min_delta:
+            lack_detected = "yes"
+
+        self.previousCoordinates["x"] = self.coordinates["x"]
+        self.previousCoordinates["y"] = self.coordinates["y"]
+        self.previousCoordinates["z"] = self.coordinates["z"]
+
+        return lack_detected

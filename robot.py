@@ -1,6 +1,7 @@
 from this import d
 from typing import Tuple
 
+
 class Wheel:
     def __init__(self, wheel, max_speed: float):
         self.wheel = wheel
@@ -26,6 +27,7 @@ class Movement:
         self.right_wheel = right_wheel
         self.gyro = gyro
         self.rotating = False
+        self.lack_of_progress_counter = 0
 
     def move(self, left_speed_ratio, right_speed_ratio, bypass_rotating=False):
         if self.rotating and not bypass_rotating:
@@ -69,7 +71,7 @@ class Movement:
 
 
 def floor_color_detection(color):
-    if color["red"] < 60 and color["green"] < 60 and color["blue"] < 60:
+    if color["red"] <= 54 and color["green"] <= 54 and color["blue"] <= 54:
         return "hole"
     elif (
         color["red"] > 230
@@ -96,9 +98,23 @@ def collision_avoidance(distances) -> Tuple[int, int, int, int, int]:
     return collision_zones
 
 
-def movement_decision(distances, movement: Movement, color):
+def movement_decision(distances, movement: Movement, color, gps):
     collision_zones = collision_avoidance(distances)
     floor_area = floor_color_detection(color.rgb)
+
+    lack_of_progress_check = gps.lackOfProgressDetector(0.001)
+    if lack_of_progress_check == "yes":
+        movement.lack_of_progress_counter += 1
+        print("lack_of_progress_counter", movement.lack_of_progress_counter)
+
+        if movement.lack_of_progress_counter > 15:
+            print("Moving due to lack of progress")
+            movement.move(-0.8, -0.8)
+            movement.rotate_in_angle(180, 0.5)
+            movement.lack_of_progress_counter = 0
+
+    elif lack_of_progress_check == "no":
+        movement.lack_of_progress_counter = 0
 
     if movement.rotating:
         movement.keep_rotating()
@@ -115,10 +131,15 @@ def movement_decision(distances, movement: Movement, color):
         return
 
     if floor_area == "hole":
-        movement.rotate_in_angle(180, 0.5)
-        return
+        if collision_zones[2] < 1:
+            movement.rotate_in_angle(180, 0.5)
+            print("Moving due to hole")
+            return
+        else:
+            print("Phew! Its not a hole. Its a wall")
     if floor_area == "swamp":
         movement.rotate_in_angle(180, 0.5)
+        print("Moving due to swamp")
         return
 
     # Collision in front
