@@ -50,10 +50,10 @@ class Movement:
         elif angle_diff < -360:
             angle_diff = angle_diff + 360
 
-        if angle_diff > 10:
+        if angle_diff > 2:
             # print("angle_diff > 0")
             self.move(speed_ratio, -speed_ratio, bypass_rotating=True)
-        elif angle_diff < -10:
+        elif angle_diff < -2:
             # print("angle_diff < 0")
             self.move(-speed_ratio, speed_ratio, bypass_rotating=True)
         else:
@@ -202,10 +202,10 @@ def movement_decision(distances, movement: Movement, color, gps, radio):
         # print("Turning right")
         movement.move(0.5, -0.5)
     # No collision in front but right is blocked
-    elif collision_zones[3] > 4 and collision_zones[4] > 4:
+    elif collision_zones[3] > 4:
         # print("Collision on right")
         # print("Turning left")
-        movement.move(-0.5, 0.5)
+        movement.move(-0.2, 0.2)
     # Free way
     else:
         movement.move(1, 1)
