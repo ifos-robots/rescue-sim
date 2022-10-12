@@ -55,7 +55,7 @@ def update_sensors(robot_time):
 while robot.step(timeStep) != -1:
     update_sensors(robot.getTime())
 
-    movement_decision(distance.distances, movement, color, gps)
+    movement_decision(distance.distances, movement, color, gps, radio)
 
     print(
         " West: "

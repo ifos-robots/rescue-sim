@@ -69,6 +69,10 @@ class Movement:
     def keep_rotating(self):
         self.rotate_to_angle(self.rotating_angle, self.rotating_speed)
 
+    def abort_rotation(self):
+        self.rotating = False
+        self.move(0, 0)
+
 
 def floor_color_detection(color):
     if color["red"] <= 54 and color["green"] <= 54 and color["blue"] <= 54:
@@ -98,21 +102,24 @@ def collision_avoidance(distances) -> Tuple[int, int, int, int, int]:
     return collision_zones
 
 
-def movement_decision(distances, movement: Movement, color, gps):
+def movement_decision(distances, movement: Movement, color, gps, radio):
     collision_zones = collision_avoidance(distances)
     floor_area = floor_color_detection(color.rgb)
 
-    lack_of_progress_check = gps.lackOfProgressDetector(0.001)
+    lack_of_progress_check = gps.lackOfProgressDetector(0.006)
     if lack_of_progress_check == "yes":
         movement.lack_of_progress_counter += 1
         print("lack_of_progress_counter", movement.lack_of_progress_counter)
 
-        if movement.lack_of_progress_counter > 15:
+        if movement.lack_of_progress_counter == 15:
             print("Moving due to lack of progress")
             movement.move(-0.8, -0.8)
             movement.rotate_in_angle(180, 0.5)
+        elif movement.lack_of_progress_counter > 20:
+            print("Oh no, I'm stuck!")
+            movement.abort_rotation()
             movement.lack_of_progress_counter = 0
-
+            radio.lackOfProgressHelp()
     elif lack_of_progress_check == "no":
         movement.lack_of_progress_counter = 0
 
@@ -132,18 +139,18 @@ def movement_decision(distances, movement: Movement, color, gps):
 
     if floor_area == "hole":
         if collision_zones[2] < 1:
-            movement.rotate_in_angle(180, 0.5)
+            movement.rotate_in_angle(90, 0.5)
             print("Moving due to hole")
             return
         else:
             print("Phew! Its not a hole. Its a wall")
     if floor_area == "swamp":
-        movement.rotate_in_angle(180, 0.5)
+        movement.rotate_in_angle(90, 0.5)
         print("Moving due to swamp")
         return
 
     # Collision in front
-    if collision_zones[2] > 0:
+    if collision_zones[2] > 1:
         print("Collision in front")
         # Left is free
         if collision_zones[0] < 1 or collision_zones[1] < 1:
