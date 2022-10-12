@@ -121,8 +121,9 @@ def report(victimType):
 while robot.step(timeStep) != -1:
     gyroscope.update(robot.getTime())
     distance.update()
+    color.update()
 
-    movement_decision(distance.distances, movement)
+    movement_decision(distance.distances, movement, color)
 
     # speeds[0] = max_velocity
     # speeds[1] = max_velocity

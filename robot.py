@@ -1,9 +1,6 @@
 from this import d
 from typing import Tuple
 
-from cv2 import rotate
-
-
 class Wheel:
     def __init__(self, wheel, max_speed: float):
         self.wheel = wheel
@@ -38,85 +35,56 @@ class Movement:
         self.right_wheel.move(right_speed_ratio)
 
     def rotate_to_angle(self, angle, speed_ratio):
-        pass
-        # self.rotating = True
-        # self.rotating_angle_to_rotate = angle
-        # self.rotating_speed = speed_ratio
-        # initial_angle = self.gyro.angle_deg
-        # angle_diff = initial_angle - angle
-        # print("angle_diff", angle_diff)
-        # rotation_diff = max(initial_angle, angle) - min(round(initial_angle), angle)
-        # print("rotation_diff", rotation_diff)
-        # if angle_diff > 180 or angle_diff < -180:
-        #     rotation_diff = 360 - rotation_diff
-        #     print("rotation_diff 2", rotation_diff)
-
-        # if angle_diff > 0:
-        #     print("angle_diff > 0")
-        #     self.move(speed_ratio, -speed_ratio, bypass_rotating=True)
-        # else:
-        #     print("angle_diff < 0")
-        #     self.move(-speed_ratio, speed_ratio, bypass_rotating=True)
-
-        # if rotation_diff > 5:
-        #     print("rotation_diff > 5")
-        #     rotation_diff = max(self.gyro.angle_deg, angle) - min(
-        #         round(self.gyro.angle_deg), angle
-        #     )
-        #     if rotation_diff > 180:
-        #         print("rotation_diff > 180")
-        #         rotation_diff = 360 - rotation_diff
-
-        # else:
-        #     print("rotation_diff < 5")
-        #     print("stop rotating")
-        #     self.move(0, 0)
-        #     self.angle_to_rotate = 0
-        #     self.rotating = False
-
-    def rotate_in_angle(self, angle, speed_ratio):
         self.rotating = True
         self.rotating_angle = angle
         self.rotating_speed = speed_ratio
 
-        initial_angle = self.gyro.angle_deg
-        print("Current angle: ", initial_angle)
-        print("Rotation angle: ", angle)
+        current_angle = self.gyro.angle_deg
+        angle_diff = current_angle - angle
 
-        angle_diff = initial_angle - angle
-        rotation_diff = max(initial_angle, angle) - min(round(initial_angle), angle)
-        if angle_diff > 180 or angle_diff < -180:
-            rotation_diff = 360 - rotation_diff
+        print("angle_diff", angle_diff)
+        if angle_diff > 360:
+            angle_diff = angle_diff - 360
+        elif angle_diff < -360:
+            angle_diff = angle_diff + 360
 
-        if angle_diff > 0:
-            print("Rotating right")
+        if angle_diff > 10:
+            print("angle_diff > 0")
             self.move(speed_ratio, -speed_ratio, bypass_rotating=True)
-        else:
-            print("Rotating left")
+        elif angle_diff < -10:
+            print("angle_diff < 0")
             self.move(-speed_ratio, speed_ratio, bypass_rotating=True)
-
-        if rotation_diff > 5:
-            print("Angle difference: ", rotation_diff)
-            rotation_diff = max(self.gyro.angle_deg, angle) - min(
-                round(self.gyro.angle_deg), angle
-            )
-            if rotation_diff > 180:
-                rotation_diff = 360 - rotation_diff
-
-            self.rotating_angle = rotation_diff
-
         else:
-            print("Stop rotating")
+            print("stop rotating")
+            self.rotating = False
             self.move(0, 0)
-            self.angle_to_rotate = 0
+            self.rotating_angle = 0
             self.rotating = False
 
+    def rotate_in_angle(self, angle, speed_ratio):
+        self.rotate_to_angle(self.gyro.angle_deg + angle, speed_ratio)
+
     def keep_rotating(self):
-        if self.rotating:
-            self.rotate_in_angle(self.rotating_angle, self.rotating_speed)
+        self.rotate_to_angle(self.rotating_angle, self.rotating_speed)
 
 
-def coliision_avoidance(distances) -> Tuple[int, int, int, int, int]:
+def floor_color_detection(color):
+    if color["red"] < 60 and color["green"] < 60 and color["blue"] < 60:
+        return "hole"
+    elif (
+        color["red"] > 230
+        and color["red"] < 245
+        and color["green"] > 200
+        and color["green"] < 220
+        and color["blue"] > 120
+        and color["blue"] < 140
+    ):
+        return "swamp"
+    else:
+        return "normal"
+
+
+def collision_avoidance(distances) -> Tuple[int, int, int, int, int]:
     collision_zones = [0, 0, 0, 0, 0]
 
     for i in range(len(distances)):
@@ -128,8 +96,9 @@ def coliision_avoidance(distances) -> Tuple[int, int, int, int, int]:
     return collision_zones
 
 
-def movement_decision(distances, movement: Movement):
-    collision_zones = coliision_avoidance(distances)
+def movement_decision(distances, movement: Movement, color):
+    collision_zones = collision_avoidance(distances)
+    floor_area = floor_color_detection(color.rgb)
 
     if movement.rotating:
         movement.keep_rotating()
@@ -145,15 +114,22 @@ def movement_decision(distances, movement: Movement):
         # Free way
         return
 
+    if floor_area == "hole":
+        movement.rotate_in_angle(180, 0.5)
+        return
+    if floor_area == "swamp":
+        movement.rotate_in_angle(180, 0.5)
+        return
+
     # Collision in front
     if collision_zones[2] > 0:
         print("Collision in front")
         # Left is free
-        if collision_zones[0] < 1:
+        if collision_zones[0] < 1 or collision_zones[1] < 1:
             movement.move(0, 0.5)
             print("Turning left")
         # Right is free
-        elif collision_zones[4] < 1:
+        elif collision_zones[4] < 1 or collision_zones[3] < 1:
             movement.move(0.5, 0)
             print("Turning right")
         # Both sides are blocked
