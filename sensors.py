@@ -1,6 +1,8 @@
 import math
 import struct
 
+import numpy as np
+
 
 class Gyroscope:
     def __init__(self, gyro, axis, time_step):
@@ -226,12 +228,23 @@ class Radio:
         self.emitter.send(exit_message)
 
 
-class Camera:
-    def __init__(self, sensor, time_step):
-        self.sensor = sensor
-        self.sensor.enable(time_step)
-
-        self.image = None
+class Cameras:
+    def __init__(self, cameras, time_step):
+        self.left_camera = cameras[0]
+        self.front_camera = cameras[1]
+        self.right_camera = cameras[2]
+        
+        self.left_camera.enable(time_step)
+        self.front_camera.enable(time_step)
+        self.right_camera.enable(time_step)
 
     def update(self):
-        self.image = self.sensor.getImage()
+        self.left_image = np.frombuffer(self.left_camera.getImage(), np.uint8).reshape(
+            (self.left_camera.getHeight(), self.left_camera.getWidth(), 4)
+        )
+        self.front_image = np.frombuffer(self.front_camera.getImage(), np.uint8).reshape(
+            (self.front_camera.getHeight(), self.front_camera.getWidth(), 4)
+        )
+        self.right_image = np.frombuffer(self.right_camera.getImage(), np.uint8).reshape(
+            (self.right_camera.getHeight(), self.right_camera.getWidth(), 4)
+        )

@@ -24,10 +24,8 @@ distance = DistanceSensors(
 ## Gyroscope
 gyroscope = Gyroscope(robot.getDevice("gyro"), 1, timeStep)
 
-## Cameras
-front_camera = Camera(robot.getDevice("camera front"), timeStep)
-left_camera = Camera(robot.getDevice("camera left"), timeStep)
-right_camera = Camera(robot.getDevice("camera right"), timeStep)
+## Cameras (yeah it's wrong, don't change pls)
+cameras = Cameras([robot.getDevice("camera right"), robot.getDevice("camera front"), robot.getDevice("camera left")], timeStep)
 
 ## Color Sensor
 colorSensor = robot.getDevice("color")
@@ -44,6 +42,8 @@ radio = Radio(emitter, receiver, timeStep)
 # Initialize movement
 movement = Movement(wheel_left, wheel_right, gyroscope)
 
+# routines
+victimDetection = VictimDetection(cameras, distance)
 
 def update_sensors(robot_time):
     gyroscope.update(robot_time)
@@ -51,15 +51,15 @@ def update_sensors(robot_time):
     color.update()
     gps.update()
     radio.updateReceiver()
-    front_camera.update()
-    left_camera.update()
-    right_camera.update()
+    cameras.update()
 
 
 while robot.step(timeStep) != -1:
     update_sensors(robot.getTime())
 
     movement_decision(distance.distances, movement, color, gps, radio)
+
+    print(victimDetection.detectionPipeline())
 
     # print(
     #     " West: "
