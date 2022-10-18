@@ -1,4 +1,3 @@
-from sys import last_traceback
 import cv2 as cv
 import numpy as np
 
@@ -7,30 +6,25 @@ class VictimDetection:
         self.cameras = cameras
         self.distances = distances
 
-        self.lastDetections = {}
+        self.__lastDetections = {}
 
     # triggers detection, returns summary of findings
     def detectionPipeline(self):
         detections = {}
         for cameraImg, distanceValue, position in self.__getDistAndCamerasIterable():
             isVictim, thresholdedImg = isVictimSign(cameraImg, distanceValue)
-            print(np.sum(thresholdedImg == 255), distanceValue, position)
             if isVictim:
-                print('Victim detection')
-                print(" Stage 1 - Victim sign probably found")
                 isLetter, framedLetter = frameVictimLetter(thresholdedImg, distanceValue)
                 if isLetter:
-                    print(' Stage 2 - Letter framed')
                     letter = classifyVictimLetter(framedLetter)
-                    print(' Stage 3 - Classified letter: ' + letter)
                     detections[position] = letter
-                else:
-                    detections[position] = 'N'
+            else:
+                detections[position] = 'N'
         
-        if detections == self.lastDetections:
+        if detections == self.__lastDetections:
             return 'old', {}
         else:
-            self.lastDetections = detections
+            self.__lastDetections = detections
             return 'new', detections
 
     def __getDistAndCamerasIterable(self):
