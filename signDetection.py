@@ -13,24 +13,28 @@ def isVictimSign(img, distance):
     whitePixels = np.sum(thresh == 255)
     blackPixels = np.sum(thresh == 0)
 
+    # print(distance)
     # print("WHITE: " + str(whitePixels), "BLACK: " + str(blackPixels))
 
-    # Sign recognition (between 0.05 - 0.15), made to be very strict
-    isSign = False
-    if distance < 0.15 and distance > 0.045:
+
+    isSign = -1
+    # Near sign recognition (between 0 - 0.045)
+    if distance <= 0.045 and whitePixels >= 1200 and whitePixels <= 2000:
+        isSign = 0
+    elif distance < 0.15 and distance > 0.045: # Sign recognition (between 0.045 - 0.15), made to be very strict
         if distance < 0.095:
             if distance < 0.07:
                 if distance < 0.055:
                     if whitePixels > 1550:
-                        isSign = True
+                        isSign = 1
                     else:
-                        isSign = False
+                        isSign = -1
                 elif whitePixels > 1150:
-                    isSign = True
+                    isSign = 1
             elif whitePixels > 750:
-                isSign = True 
+                isSign = 1 
         elif whitePixels > 320:
-            isSign = True
+            isSign = 1
 
     # threshResize = cv.resize(thresh, (thresh.shape[1] * 5, thresh.shape[0] * 5), interpolation = cv.INTER_NEAREST)
     # cv.imshow('Thresh', threshResize)

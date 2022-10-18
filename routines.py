@@ -10,17 +10,22 @@ class VictimDetection:
 
     # triggers detection, returns summary of findings
     def detectionPipeline(self):
-        detections = {}
+        detections = {
+            "left": "",
+            "right": ""
+        }
         for cameraImg, distanceValue, position in self.__getDistAndCamerasIterable():
             isVictim, thresholdedImg = isVictimSign(cameraImg, distanceValue)
-            if isVictim:
+            if isVictim == 1:
                 isLetter, framedLetter = frameVictimLetter(thresholdedImg, distanceValue)
                 if isLetter:
                     letter = classifyVictimLetter(framedLetter)
                     detections[position] = letter
-            else:
-                detections[position] = 'N'
-        
+            elif isVictim == 0:
+                detections[position] = 'Near'
+            elif isVictim == -1:
+                detections[position] =  'Null'
+
         if detections == self.__lastDetections:
             return 'old', {}
         else:

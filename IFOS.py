@@ -63,6 +63,7 @@ while robot.step(timeStep) != -1:
     status, detections = victimDetection.detectionPipeline()
     if status == 'new':
         print(detections)
+        
 
     # print(
     #     " West: "
