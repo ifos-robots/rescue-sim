@@ -178,7 +178,13 @@ def random_dir(pos):
     return dir
 
 
-def movement_decision(distances, movement: Movement, color, gps, radio, victim_status):
+def movement_decision(
+    distances, movement: Movement, color, gps, radio, victim_status, wait_sec
+):
+    if wait_sec is not None and wait_sec > 1:
+        movement.move(0, 0, True)
+        return
+
     collision_zones = collision_avoidance(distances)
     floor_area = floor_color_detection(color.rgb)
 

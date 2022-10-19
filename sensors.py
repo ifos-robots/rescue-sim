@@ -183,7 +183,10 @@ class Radio:
 
     def sendVictim(self, type, position):
         victim_type = bytes(type, "utf-8")
-        message = struct.pack("i i c", position["x"], position["y"], victim_type)
+        message = struct.pack(
+            "i i c", math.trunc((position["x"]) * 100), math.trunc((position["z"]) * 100), victim_type
+        )
+        # print(math.trunc((position["x"]) * 100), math.trunc((position["z"]) * 100), victim_type, type)
         self.emitter.send(message)
 
     def lackOfProgressHelp(self):
@@ -233,7 +236,7 @@ class Cameras:
         self.left_camera = cameras[0]
         self.front_camera = cameras[1]
         self.right_camera = cameras[2]
-        
+
         self.left_camera.enable(time_step)
         self.front_camera.enable(time_step)
         self.right_camera.enable(time_step)
@@ -242,9 +245,9 @@ class Cameras:
         self.left_image = np.frombuffer(self.left_camera.getImage(), np.uint8).reshape(
             (self.left_camera.getHeight(), self.left_camera.getWidth(), 4)
         )
-        self.front_image = np.frombuffer(self.front_camera.getImage(), np.uint8).reshape(
-            (self.front_camera.getHeight(), self.front_camera.getWidth(), 4)
-        )
-        self.right_image = np.frombuffer(self.right_camera.getImage(), np.uint8).reshape(
-            (self.right_camera.getHeight(), self.right_camera.getWidth(), 4)
-        )
+        self.front_image = np.frombuffer(
+            self.front_camera.getImage(), np.uint8
+        ).reshape((self.front_camera.getHeight(), self.front_camera.getWidth(), 4))
+        self.right_image = np.frombuffer(
+            self.right_camera.getImage(), np.uint8
+        ).reshape((self.right_camera.getHeight(), self.right_camera.getWidth(), 4))

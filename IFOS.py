@@ -1,3 +1,5 @@
+
+import time
 from controller import Robot
 
 timeStep = 32  # Set the time step for the simulation
@@ -25,7 +27,14 @@ distance = DistanceSensors(
 gyroscope = Gyroscope(robot.getDevice("gyro"), 1, timeStep)
 
 ## Cameras (yeah it's wrong, don't change pls)
-cameras = Cameras([robot.getDevice("camera right"), robot.getDevice("camera front"), robot.getDevice("camera left")], timeStep)
+cameras = Cameras(
+    [
+        robot.getDevice("camera right"),
+        robot.getDevice("camera front"),
+        robot.getDevice("camera left"),
+    ],
+    timeStep,
+)
 
 ## Color Sensor
 colorSensor = robot.getDevice("color")
@@ -45,6 +54,7 @@ movement = Movement(wheel_left, wheel_right, gyroscope)
 # routines
 victimDetection = VictimDetection(cameras, distance)
 
+
 def update_sensors(robot_time):
     gyroscope.update(robot_time)
     distance.update()
@@ -53,17 +63,63 @@ def update_sensors(robot_time):
     radio.updateReceiver()
     cameras.update()
 
+victim_to_be_reported_type = None
+can_report = False
+wait_sec = None
+init_time = None
 
 while robot.step(timeStep) != -1:
     update_sensors(robot.getTime())
+    # radio.sendVictim("S", {"x": 0, "z": 0})
+    # radio.lackOfProgressHelp()
+    
+    if can_report:
+        print("reported", victim_to_be_reported_pos, victim_to_be_reported_type)
+        radio.sendVictim(victim_to_be_reported_type, victim_to_be_reported_pos)
+        can_report = False
+        victim_to_be_reported_pos = None
+        victim_to_be_reported_type = None
 
     # victim detection (TODO: report victim)
     detections = victimDetection.detectionPipeline()
-    print(detections)
+    # print(detections)
 
-    movement_decision(distance.distances, movement, color, gps, radio, detections)
+    # print(gps.coordinates)
+
+    if detections["left"][0] == "new":
+        type = detections["left"][1]
+        if type in ["H", "S", "U"]:
+            victim_to_be_reported_type = type
+            victim_to_be_reported_pos = gps.coordinates
+            wait_sec = 200
+            init_time = time.time()
+            print("repost at left")
+            
+    if detections["right"][0] == "new":
+        type = detections["right"][1]
+        if type in ["H", "S", "U", "F"]:
+            victim_to_be_reported_type = type
+            victim_to_be_reported_pos = gps.coordinates
+            wait_sec = 200
+            init_time = time.time()
+            print("repost at right")
 
 
+    movement_decision(distance.distances, movement, color, gps, radio, detections, wait_sec)
+
+    # if victim_to_be_reported_type is not None and wait_sec > 0:
+    #     print(wait_sec)
+    #     wait_sec -= 1
+    # if wait_sec == 0 and victim_to_be_reported_type is not None:
+    #     can_report = True
+
+    # if init_time:
+    #     print(init_time, "vs", time.time(), "=", init_time - time.time())
+
+    if init_time and victim_to_be_reported_type and (time.time() - init_time) >= 1:
+        can_report = True
+        wait_sec = 0
+        print(init_time, wait_sec, can_report, time.time(), init_time - time.time())
     # print(
     #     " West: "
     #     + str(distance.distances[0])
