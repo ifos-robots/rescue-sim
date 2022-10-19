@@ -151,3 +151,16 @@ def classifyVictimLetter(framedLetter):
             foundLetter = letter
     
     return foundLetter
+
+def hazmatDetection(img, distance):
+    red_image = img[:,:,2]
+    # gray_img = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
+    r, thresh = cv.threshold(
+        red_image, 200, 255, cv.THRESH_BINARY
+    )
+
+    whitePixels = np.sum(thresh == 255)
+    blackPixels = np.sum(thresh == 0)
+
+    print(distance)
+    print("WHITE: " + str(whitePixels), "BLACK: " + str(blackPixels))

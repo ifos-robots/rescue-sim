@@ -29,6 +29,8 @@ class VictimDetection:
                 detections[position][1] = 'Near'
             elif isVictim == -1:
                 detections[position][1] =  'Null'
+            else:
+                print(hazmatDetection(cameraImg, distanceValue))
 
         # prevents multiple detections from the same sign
         for position in self.__lastDetections.keys():
