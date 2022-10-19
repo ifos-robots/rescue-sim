@@ -93,20 +93,21 @@ class Movement:
         if self.rotating:
             self.keep_rotating()
             return
-        if self.getting_victim_steps > 5:
+        if self.getting_victim_steps > 9:
             self.move(0.5, 0.5)
             print("forward")
-        elif self.getting_victim_steps == 5:
+        elif self.getting_victim_steps == 9:
             if self.getting_victim_dir == "left":
                 self.rotate_in_angle(90, 0.5)
                 print("rotating 90deg")
             elif self.getting_victim_dir == "right":
                 self.rotate_in_angle(-90, 0.5)
                 print("rotating -90deg")
-            self.getting_victim = False
         elif self.getting_victim_steps > 1:
             self.move(-0.5, -0.5)
             print("backward")
+        elif self.getting_victim_steps == 0:
+            self.getting_victim = False
 
         self.getting_victim_steps -= 1
 
@@ -170,27 +171,25 @@ def random_dir(pos):
         print(0)
         return 0
 
-    dir = random.randint(0, len(pos)-1)
+    dir = random.randint(0, len(pos) - 1)
 
     print(dir)
 
     return dir
 
 
-def movement_decision(
-    distances, movement: Movement, color, gps, radio, new_victim, victim_status
-):
+def movement_decision(distances, movement: Movement, color, gps, radio, victim_status):
     collision_zones = collision_avoidance(distances)
     floor_area = floor_color_detection(color.rgb)
 
     if movement.getting_victim:
         movement.keep_getting_victim()
         return
-    elif new_victim == "new":
-        if victim_status["left"] == "Near":
+    elif victim_status:
+        if victim_status["left"][0] == "new" and victim_status["left"][1] == "Near":
             movement.distantiate_to_get_victim("left")
             return
-        elif victim_status["right"] == "Near":
+        elif victim_status["right"][0] == "new" and victim_status["right"][1] == "Near":
             movement.distantiate_to_get_victim("right")
             return
 
@@ -241,13 +240,6 @@ def movement_decision(
             movement.is_in_swamp = False
             print("I'm out of the swamp")
 
-    if new_victim == "new":
-        if victim_status["left"] == "Near":
-            movement.distantiate_to_get_victim("left")
-            return
-        elif victim_status["right"] == "Near":
-            movement.distantiate_to_get_victim("right")
-            return
     # Collision in front
     if collision_zones[2] > 4:
         # print("Collision in front")
@@ -279,4 +271,4 @@ def movement_decision(
         movement.move(-0.2, 0.2)
     # Free way
     else:
-            movement.move(1, 1)
+        movement.move(1, 1)
