@@ -48,3 +48,4 @@ class VictimDetection:
             [self.distances.left_distance, self.distances.right_distance], 
             ['left', 'right']
         )
+            

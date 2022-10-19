@@ -13,8 +13,8 @@ def isVictimSign(img, distance):
     whitePixels = np.sum(thresh == 255)
     blackPixels = np.sum(thresh == 0)
 
-    # print(distance)
-    # print("WHITE: " + str(whitePixels), "BLACK: " + str(blackPixels))
+    print(distance)
+    print("WHITE: " + str(whitePixels), "BLACK: " + str(blackPixels))
 
 
     isSign = -1
