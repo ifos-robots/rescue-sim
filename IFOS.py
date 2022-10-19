@@ -56,14 +56,14 @@ def update_sensors(robot_time):
 
 while robot.step(timeStep) != -1:
     update_sensors(robot.getTime())
-
-    movement_decision(distance.distances, movement, color, gps, radio)
-
-    # victim detection (TODO: report victim)
     status, detections = victimDetection.detectionPipeline()
+    # victim detection (TODO: report victim)
     if status == 'new':
         print(detections)
         
+
+    movement_decision(distance.distances, movement, color, gps, radio, status, detections)
+
 
     # print(
     #     " West: "

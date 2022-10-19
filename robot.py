@@ -1,3 +1,4 @@
+import random
 from typing import Tuple
 
 
@@ -28,6 +29,9 @@ class Movement:
         self.rotating = False
         self.lack_of_progress_counter = 0
         self.is_in_swamp = False
+        self.getting_victim = False
+        self.getting_victim_steps = 0
+        self.getting_victim_dir = None
 
     def move(self, left_speed_ratio, right_speed_ratio, bypass_rotating=False):
         if self.rotating and not bypass_rotating:
@@ -72,6 +76,39 @@ class Movement:
     def abort_rotation(self):
         self.rotating = False
         self.move(0, 0)
+
+    def distantiate_to_get_victim(self, dir):
+        self.getting_victim = True
+        self.getting_victim_steps = 25
+        self.getting_victim_dir = dir
+        if self.getting_victim_dir == "left":
+            self.rotate_in_angle(-90, 0.5)
+            print("rotating -90deg")
+        elif self.getting_victim_dir == "right":
+            self.rotate_in_angle(90, 0.5)
+            print("rotating 90deg")
+        self.getting_victim_steps -= 1
+
+    def keep_getting_victim(self):
+        if self.rotating:
+            self.keep_rotating()
+            return
+        if self.getting_victim_steps > 5:
+            self.move(0.5, 0.5)
+            print("forward")
+        elif self.getting_victim_steps == 5:
+            if self.getting_victim_dir == "left":
+                self.rotate_in_angle(90, 0.5)
+                print("rotating 90deg")
+            elif self.getting_victim_dir == "right":
+                self.rotate_in_angle(-90, 0.5)
+                print("rotating -90deg")
+            self.getting_victim = False
+        elif self.getting_victim_steps > 1:
+            self.move(-0.5, -0.5)
+            print("backward")
+
+        self.getting_victim_steps -= 1
 
 
 def floor_color_detection(color):
@@ -126,9 +163,36 @@ def turn_to_freest_way(distances, movement, lock_rotation=True):
         movement.rotate_in_angle(-90, 0.5)
 
 
-def movement_decision(distances, movement: Movement, color, gps, radio):
+def random_dir(pos):
+    random.seed()
+    print(pos, len(pos))
+    if len(pos) == 1:
+        print(0)
+        return 0
+
+    dir = random.randint(0, len(pos)-1)
+
+    print(dir)
+
+    return dir
+
+
+def movement_decision(
+    distances, movement: Movement, color, gps, radio, new_victim, victim_status
+):
     collision_zones = collision_avoidance(distances)
     floor_area = floor_color_detection(color.rgb)
+
+    if movement.getting_victim:
+        movement.keep_getting_victim()
+        return
+    elif new_victim == "new":
+        if victim_status["left"] == "Near":
+            movement.distantiate_to_get_victim("left")
+            return
+        elif victim_status["right"] == "Near":
+            movement.distantiate_to_get_victim("right")
+            return
 
     lack_of_progress_check = gps.lackOfProgressDetector(0.006)
     if lack_of_progress_check == "yes":
@@ -177,6 +241,13 @@ def movement_decision(distances, movement: Movement, color, gps, radio):
             movement.is_in_swamp = False
             print("I'm out of the swamp")
 
+    if new_victim == "new":
+        if victim_status["left"] == "Near":
+            movement.distantiate_to_get_victim("left")
+            return
+        elif victim_status["right"] == "Near":
+            movement.distantiate_to_get_victim("right")
+            return
     # Collision in front
     if collision_zones[2] > 4:
         # print("Collision in front")
@@ -208,4 +279,4 @@ def movement_decision(distances, movement: Movement, color, gps, radio):
         movement.move(-0.2, 0.2)
     # Free way
     else:
-        movement.move(1, 1)
+            movement.move(1, 1)
