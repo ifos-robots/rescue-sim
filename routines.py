@@ -6,31 +6,41 @@ class VictimDetection:
         self.cameras = cameras
         self.distances = distances
 
-        self.__lastDetections = {}
+        self.__lastDetections = {
+            "left": ['old', "Null"],
+            "right": ['old', "Null"]
+        }
 
     # triggers detection, returns summary of findings
     def detectionPipeline(self):
         detections = {
-            "left": "",
-            "right": ""
+            "left": ['old', "Null"],
+            "right": ['old', "Null"]
         }
+        
         for cameraImg, distanceValue, position in self.__getDistAndCamerasIterable():
             isVictim, thresholdedImg = isVictimSign(cameraImg, distanceValue)
             if isVictim == 1:
                 isLetter, framedLetter = frameVictimLetter(thresholdedImg, distanceValue)
                 if isLetter:
                     letter = classifyVictimLetter(framedLetter)
-                    detections[position] = letter
+                    detections[position][1] = letter
             elif isVictim == 0:
-                detections[position] = 'Near'
+                detections[position][1] = 'Near'
             elif isVictim == -1:
-                detections[position] =  'Null'
+                detections[position][1] =  'Null'
 
-        if detections == self.__lastDetections:
-            return 'old', {}
-        else:
-            self.__lastDetections = detections
-            return 'new', detections
+        # prevents multiple detections from the same sign
+        for position in self.__lastDetections.keys():
+            if detections[position][1] == self.__lastDetections[position][1]:
+                detections[position][0] = 'old'
+                self.__lastDetections[position][0] = 'old'
+            else:
+                detections[position][0] = 'new'
+                self.__lastDetections[position][0] = 'new'
+                self.__lastDetections[position][1] = detections[position][1]
+        
+        return detections
 
     def __getDistAndCamerasIterable(self):
         return zip(

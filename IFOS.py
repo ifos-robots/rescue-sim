@@ -60,9 +60,8 @@ while robot.step(timeStep) != -1:
     movement_decision(distance.distances, movement, color, gps, radio)
 
     # victim detection (TODO: report victim)
-    status, detections = victimDetection.detectionPipeline()
-    if status == 'new':
-        print(detections)
+    detections = victimDetection.detectionPipeline()
+    print(detections)
         
 
     # print(
