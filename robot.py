@@ -1,4 +1,5 @@
 import random
+from shutil import move
 from typing import Tuple
 
 
@@ -26,6 +27,7 @@ class Movement:
         self.left_wheel = left_wheel
         self.right_wheel = right_wheel
         self.gyro = gyro
+        self.time_to_check = 80
         self.rotating = False
         self.lack_of_progress_counter = 0
         self.is_in_swamp = False
@@ -219,15 +221,15 @@ def movement_decision(
 
     if movement.rotating:
         movement.keep_rotating()
-        if (
-            collision_zones[0] > 4
-            and collision_zones[1] > 4
-            or collision_zones[3] > 4
-            and collision_zones[4] > 4
-        ):
-            # print("Collision on side")
-            # print("Backward")
-            movement.move(-0.5, -0.5)
+        # if (
+        #     collision_zones[0] > 4
+        #     and collision_zones[1] > 4
+        #     or collision_zones[3] > 4
+        #     and collision_zones[4] > 4
+        # ):
+        #     # print("Collision on side")
+        #     # print("Backward")
+        #     movement.move(-0.5, -0.5)
         # Free way
         return
 
@@ -247,14 +249,37 @@ def movement_decision(
             movement.is_in_swamp = False
             print("out of the swamp")
 
+    # left_free = collision_zones[0] < 4 or collision_zones[1] < 4
+    # right_free = collision_zones[3] < 4 or collision_zones[4] < 4
+    # front_free = collision_zones[2] < 4
+
+    # dirs = []
+
+    # left_free and dirs.append("left")
+    # right_free and dirs.append("right")
+    # front_free and dirs.append("front")
+
+    # if len(dirs) == 0:
+    #     movement.rotate_in_angle(180, 0.5)
+    #     return
+    #     # print("Turning back")
+    # else:
+    #     dir = random_dir(dirs)
+
+    left_free = collision_zones[0] < 4 or collision_zones[1] < 4
+    right_free = collision_zones[3] < 4 or collision_zones[4] < 4
     # Collision in front
     if collision_zones[2] > 4:
         # print("Collision in front")
-        left_free = collision_zones[0] < 4 or collision_zones[1] < 4
-        right_free = collision_zones[3] < 4 or collision_zones[4] < 4
+
         # Both sides are free
         if left_free and right_free:
-            turn_to_freest_way(distances, movement)
+            # turn_to_freest_way(distances, movement)
+            dir = random_dir(["left", "right"])
+            if dir == 0:
+                movement.rotate_in_angle(90, 0.5)
+            else:
+                movement.rotate_in_angle(-90, 0.5)
 
         elif left_free:
             movement.move(0, 0.5)
@@ -265,7 +290,7 @@ def movement_decision(
         # Both sides are blocked
         else:
             movement.rotate_in_angle(180, 0.5)
-            # print("Turning back")
+
     # No collision in front but left is blocked
     elif collision_zones[0] > 4 and collision_zones[1] > 4:
         # print("Collision on left")
@@ -278,11 +303,34 @@ def movement_decision(
         movement.move(-0.2, 0.2)
     # Free way
     else:
+        if movement.time_to_check == 0:
+            movement.time_to_check = 80
+
+            dirs = []
+            right_free and dirs.append("right")
+            left_free and dirs.append("left")
+            dirs.append("front")
+
+            dir = random_dir(dirs)
+
+            if dirs[dir] == "right":
+                movement.rotate_in_angle(-90, 0.5)
+                return
+            elif dirs[dir] == "left":
+                movement.rotate_in_angle(90, 0.5)
+                return
+
+        else:
+            movement.time_to_check -= 1
+
         movement.move(1, 1)
 
+
 def delay(ms):
-    initTime = robot.getTime()      # Store starting time (in seconds)
+    initTime = robot.getTime()  # Store starting time (in seconds)
     while robot.step(timeStep) != -1:
-        if (robot.getTime() - initTime) * 1000.0 > ms: # If time elapsed (converted into ms) is greater than value passed in
+        if (
+            robot.getTime() - initTime
+        ) * 1000.0 > ms:  # If time elapsed (converted into ms) is greater than value passed in
             break
     canReport = True
