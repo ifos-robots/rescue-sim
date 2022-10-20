@@ -278,3 +278,10 @@ def movement_decision(
     # Free way
     else:
         movement.move(1, 1)
+
+def delay(ms):
+    initTime = robot.getTime()      # Store starting time (in seconds)
+    while robot.step(timeStep) != -1:
+        if (robot.getTime() - initTime) * 1000.0 > ms: # If time elapsed (converted into ms) is greater than value passed in
+            break
+    canReport = True

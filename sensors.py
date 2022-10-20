@@ -184,9 +184,9 @@ class Radio:
     def sendVictim(self, type, position):
         victim_type = bytes(type, "utf-8")
         message = struct.pack(
-            "i i c", math.trunc((position["x"]) * 100), math.trunc((position["z"]) * 100), victim_type
+            "i i c", int(position["x"] * 100), int(position["z"] * 100), victim_type
         )
-        # print(math.trunc((position["x"]) * 100), math.trunc((position["z"]) * 100), victim_type, type)
+        
         self.emitter.send(message)
 
     def lackOfProgressHelp(self):

@@ -75,16 +75,12 @@ while robot.step(timeStep) != -1:
     
     if can_report:
         print("reported", victim_to_be_reported_pos, victim_to_be_reported_type)
-        radio.sendVictim(victim_to_be_reported_type, victim_to_be_reported_pos)
         can_report = False
         victim_to_be_reported_pos = None
         victim_to_be_reported_type = None
 
     # victim detection (TODO: report victim)
     detections = victimDetection.detectionPipeline()
-    # print(detections)
-
-    # print(gps.coordinates)
 
     if detections["left"][0] == "new":
         type = detections["left"][1]
@@ -97,7 +93,7 @@ while robot.step(timeStep) != -1:
             
     if detections["right"][0] == "new":
         type = detections["right"][1]
-        if type in ["H", "S", "U", "F"]:
+        if type in ["H", "S", "U"]:
             victim_to_be_reported_type = type
             victim_to_be_reported_pos = gps.coordinates
             wait_sec = 200
@@ -107,19 +103,13 @@ while robot.step(timeStep) != -1:
 
     movement_decision(distance.distances, movement, color, gps, radio, detections, wait_sec)
 
-    # if victim_to_be_reported_type is not None and wait_sec > 0:
-    #     print(wait_sec)
-    #     wait_sec -= 1
-    # if wait_sec == 0 and victim_to_be_reported_type is not None:
-    #     can_report = True
 
-    # if init_time:
-    #     print(init_time, "vs", time.time(), "=", init_time - time.time())
-
-    if init_time and victim_to_be_reported_type and (time.time() - init_time) >= 1:
+    if init_time and victim_to_be_reported_type and (time.time() - init_time) >= 5:
+        radio.sendVictim(victim_to_be_reported_type, victim_to_be_reported_pos)
         can_report = True
         wait_sec = 0
         print(init_time, wait_sec, can_report, time.time(), init_time - time.time())
+        
     # print(
     #     " West: "
     #     + str(distance.distances[0])

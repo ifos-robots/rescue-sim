@@ -70,7 +70,7 @@ def frameVictimLetter(thresholdedImg, distance):
         # detect contour containing letter
         # only two different ranges
         if distance > 0.095:
-            if contArea > 150 and contArea < 300 and ratio > 0.6:
+            if contArea > 250 and contArea < 300 and ratio > 0.6:
                 letterBoundingBox = (x, y, w, h)
                 # cv.drawContours(border, contours, contour_count, 160, 1)
         else:
@@ -111,8 +111,8 @@ def classifyVictimLetter(framedLetter):
         },
         "S": {
             "top": (370, 430),
-            "center": (340, 440),
-            "bottom": (420, 500)
+            "center": (300, 440),
+            "bottom": (420, 520)
         },
         "U": {
             "top": (220, 330),
@@ -130,7 +130,7 @@ def classifyVictimLetter(framedLetter):
     bottomSection = framedLetter[(2*(h//3) - 1) + 1:h, 0:w]
     bottomBlackPixels = np.sum(bottomSection == 0)
 
-    # # easy debugging, you're welcome
+    # easy debugging, you're welcome
     # print('-------')
     # print('top Pixels: ')
     # print('BLACK: ' + str(topBlackPixels))
@@ -154,12 +154,23 @@ def classifyVictimLetter(framedLetter):
 
 def hazmatDetection(img, distance):
     red_image = img[:,:,2]
-    # gray_img = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
+    
     r, red_thresh = cv.threshold(
         red_image, 200, 255, cv.THRESH_BINARY
     )
 
     redWhitePixels = np.sum(red_thresh == 255)
 
-    if redWhitePixels >= 40 and distance < 0.09 and distance > 0.045:
-        return 'F'
+    green_image = img[:,2,:]
+    
+    r, green_thresh = cv.threshold(
+        green_image, 200, 255, cv.THRESH_BINARY
+    )
+
+    greenWhitePixels = np.sum(green_thresh == 255)
+
+    # print('Red:' + str(redWhitePixels))
+    # print('Green:' + str(greenWhitePixels))
+
+    # if redWhitePixels >= 60 and distance < 0.09 and distance > 0.045:
+    #     return 'F'

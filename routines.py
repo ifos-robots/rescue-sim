@@ -30,10 +30,10 @@ class VictimDetection:
             elif isVictim == -1:
                 detections[position][1] =  'Null'
 
-            hazmat = hazmatDetection(cameraImg, distanceValue) 
-            if hazmat in ['F', 'P', 'C', 'O']:
-                detections[position][1] =  hazmat
-                print(hazmat)
+            # hazmat = hazmatDetection(cameraImg, distanceValue) 
+            # if hazmat in ['F', 'P', 'C', 'O']:
+            #     detections[position][1] =  hazmat
+            #     print(hazmat)
 
         # prevents multiple detections from the same sign
         for position in self.__lastDetections.keys():
