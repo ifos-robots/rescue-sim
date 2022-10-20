@@ -79,7 +79,7 @@ class Movement:
 
     def distantiate_to_get_victim(self, dir):
         self.getting_victim = True
-        self.getting_victim_steps = 25
+        self.getting_victim_steps = 20
         self.getting_victim_dir = dir
         if self.getting_victim_dir == "left":
             self.rotate_in_angle(-90, 0.5)

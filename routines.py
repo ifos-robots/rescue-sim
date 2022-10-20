@@ -62,5 +62,6 @@ def checkForDetectedSign(detectedSignsPositions, currentCoordinates, type):
         if (sign == type 
         and position['x'] < currentCoordinates['x'] + 0.04 and position['x'] > currentCoordinates['x'] - 0.04 
         and position['z'] < currentCoordinates['z'] + 0.04 and position['z'] > currentCoordinates['z'] - 0.04):
-            return True
             print('already detected')
+            return True
+
