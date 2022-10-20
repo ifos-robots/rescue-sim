@@ -183,6 +183,7 @@ def movement_decision(
 ):
     if wait_sec is not None and wait_sec > 1:
         movement.move(0, 0, True)
+        movement.lack_of_progress_counter = 0
         return
 
     collision_zones = collision_avoidance(distances)
