@@ -21,7 +21,7 @@ def isVictimSign(img, distance):
     # Near sign recognition (between 0 - 0.045)
     if distance <= 0.045 and whitePixels >= 1200 and whitePixels <= 2000:
         isSign = 0
-    elif distance < 0.15 and distance > 0.045: # Sign recognition (between 0.045 - 0.15), made to be very strict
+    elif distance <= 0.2 and distance > 0.045: # Sign recognition (between 0.045 - 0.15), made to be very strict
         if distance < 0.095:
             if distance < 0.07:
                 if distance < 0.055:
@@ -33,7 +33,7 @@ def isVictimSign(img, distance):
                     isSign = 1
             elif whitePixels > 750:
                 isSign = 1 
-        elif whitePixels > 320:
+        elif whitePixels > 220:
             isSign = 1
 
     # threshResize = cv.resize(thresh, (thresh.shape[1] * 5, thresh.shape[0] * 5), interpolation = cv.INTER_NEAREST)
