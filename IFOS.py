@@ -68,6 +68,8 @@ can_report = False
 wait_sec = None
 init_time = None
 
+detections_positions = []
+
 while robot.step(timeStep) != -1:
     update_sensors(robot.getTime())
     # radio.sendVictim("S", {"x": 0, "z": 0})
@@ -85,20 +87,30 @@ while robot.step(timeStep) != -1:
     if detections["left"][0] == "new":
         type = detections["left"][1]
         if type in ["H", "S", "U"]:
-            victim_to_be_reported_type = type
-            victim_to_be_reported_pos = gps.coordinates
-            wait_sec = 200
-            init_time = time.time()
-            print("repost at left")
+            permit_report = True
+            if detections_positions:
+                if checkForDetectedSign(detections_positions, gps.coordinates, type):
+                    permit_report = False
+            if permit_report:
+                victim_to_be_reported_type = type
+                victim_to_be_reported_pos = gps.coordinates
+                wait_sec = 200
+                init_time = time.time()
+                print("repost at left")
             
     if detections["right"][0] == "new":
         type = detections["right"][1]
         if type in ["H", "S", "U"]:
-            victim_to_be_reported_type = type
-            victim_to_be_reported_pos = gps.coordinates
-            wait_sec = 200
-            init_time = time.time()
-            print("repost at right")
+            permit_report = True
+            if detections_positions:
+                if checkForDetectedSign(detections_positions, gps.coordinates, type):
+                    permit_report = False
+            if permit_report:
+                victim_to_be_reported_type = type
+                victim_to_be_reported_pos = gps.coordinates
+                wait_sec = 200
+                init_time = time.time()
+                print("repost at right")
 
 
     movement_decision(distance.distances, movement, color, gps, radio, detections, wait_sec)
@@ -106,6 +118,11 @@ while robot.step(timeStep) != -1:
 
     if init_time and victim_to_be_reported_type and (time.time() - init_time) >= 5:
         radio.sendVictim(victim_to_be_reported_type, victim_to_be_reported_pos)
+
+        detections_positions.append((victim_to_be_reported_type, victim_to_be_reported_pos))
+
+        print(detections_positions)
+
         can_report = True
         wait_sec = 0
         print(init_time, wait_sec, can_report, time.time(), init_time - time.time())
