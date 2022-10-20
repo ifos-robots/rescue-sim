@@ -234,12 +234,10 @@ def movement_decision(
         return
 
     if floor_area == "hole":
-        color.hole_counter += 1
-        if color.hole_counter > 2:
-            turn_to_freest_way(distances, movement)
-            print("hole")
-            color.hole_counter = 0
-            return
+        turn_to_freest_way(distances, movement)
+        print("hole")
+        color.hole_counter = 0
+        return
     elif floor_area == "swamp":
         if not movement.is_in_swamp:
             movement.is_in_swamp = True
@@ -307,8 +305,8 @@ def movement_decision(
             movement.time_to_check = 80
 
             dirs = []
-            right_free and dirs.append("right")
-            left_free and dirs.append("left")
+            right_free and collision_zones[1] < 3 and dirs.append("right")
+            left_free and collision_zones[3] < 3 and dirs.append("left")
             dirs.append("front")
 
             dir = random_dir(dirs)
