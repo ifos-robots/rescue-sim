@@ -232,20 +232,20 @@ def movement_decision(
         return
 
     if floor_area == "hole":
-        if collision_zones[2] < 4:
+        color.hole_counter += 1
+        if color.hole_counter > 2:
             turn_to_freest_way(distances, movement)
-            print("Moving due to hole")
+            print("hole")
+            color.hole_counter = 0
             return
-        else:
-            print("Phew! Its not a hole. Its a wall")
     elif floor_area == "swamp":
         if not movement.is_in_swamp:
             movement.is_in_swamp = True
-            print("Okay. Take a deep breath and lets go!")
+            # print("Okay. Take a deep breath and lets go!")
     elif floor_area == "normal":
         if movement.is_in_swamp:
             movement.is_in_swamp = False
-            print("I'm out of the swamp")
+            print("out of the swamp")
 
     # Collision in front
     if collision_zones[2] > 4:

@@ -82,6 +82,8 @@ class Color:
             "blue": None,
         }
 
+        self.hole_counter = 0
+
     def update(self):
         image = self.sensor.getImage()
         self.color["red"] = self.sensor.imageGetRed(image, 1, 0, 0)
